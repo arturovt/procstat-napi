@@ -13,7 +13,8 @@ static inline ContextSwitches read_context_switches(int pid) {
   // closest is proc_pidinfo() from <libproc.h>
   // Windows: no context switch API exposed in Win32 at per-process level
   // would need ETW (Event Tracing for Windows) — overkill
-  return (ContextSwitches){0, 0};
+  // ❌ MSVC doesn't like this (ContextSwitches){0, 0}
+  return ContextSwitches{0, 0};
 #endif
 
   // /proc/[pid]/status is a Linux kernel virtual file exposing process
