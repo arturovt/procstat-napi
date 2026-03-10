@@ -1,0 +1,102 @@
+name: procstat-napi
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform:
+          [
+            { runner: 'windows-latest', command: 'build:windows' },
+            { runner: 'macos-latest', command: 'build:mac' },
+            { runner: 'ubuntu-latest', command: 'build:linux' },
+          ]
+    runs-on: ${{ matrix.platform.runner }}
+    # CXX is only meaningful for Linux/GCC — overridden per-step on Windows via MSVC
+    env:
+      CXX: g++
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Linux only: install a specific GCC version via egor-tensin/setup-gcc
+      - name: Setup GCC
+        uses: egor-tensin/setup-gcc@v2
+        if: ${{ matrix.platform.runner == 'ubuntu-latest' }}
+        with:
+          version: latest
+          platform: x64
+
+      # Windows only: set up MSVC environment (cl.exe, link.exe, etc.)
+      # Required for node-gyp to compile the native addon on Windows
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        if: ${{ matrix.platform.runner == 'windows-latest' }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Python 3.11 is the last version with distutils built-in.
+      # node-gyp depends on distutils; 3.12+ removed it and requires setuptools as a shim.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # --ignore-scripts prevents "install": "node-gyp-build" from running during
+      # yarn install — at this point there are no prebuilds yet, so it would fail.
+      # The actual build happens in the next step via the platform-specific script.
+      - run: yarn --pure-lockfile --ignore-scripts
+      - run: yarn ${{ matrix.platform.command }}
+
+      # Upload only the platform-specific prebuilds — shared files are assembled
+      # in the publish job to avoid duplicating them across 3 artifacts
+      - name: Upload prebuilds
+        uses: actions/upload-artifact@v4
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        with:
+          name: prebuilds-${{ matrix.platform.runner }}
+          path: prebuilds/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # Download all 3 platform prebuilds and merge them into a single prebuilds/ folder
+      - name: Download all prebuilds
+        uses: actions/download-artifact@v4
+        with:
+          pattern: prebuilds-*
+          merge-multiple: true
+          path: prebuilds/
+
+      # Single final artifact containing shared files + all platform .node binaries
+      - name: Upload final artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            package.json
+            index.js
+            index.mjs
+            index.d.ts
+            README.md
+            LICENSE
+            prebuilds/
+            src
+            binding.gyp

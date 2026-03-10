@@ -1,0 +1,57 @@
+{
+  "name": "procstat-napi",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "description": "Linux process statistics via /proc for Node.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arturovt/procstat-napi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/arturovt/procstat-napi/issues"
+  },
+  "homepage": "https://github.com/arturovt/procstat-napi#readme",
+  "main": "./index.js",
+  "exports": {
+    "import": "./index.mjs",
+    "require": "./index.js"
+  },
+  "typings": "./typings/index.d.ts",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "index.js",
+    "index.mjs",
+    "index.d.ts",
+    "README.md",
+    "LICENSE",
+    "prebuilds/**",
+    "src",
+    "binding.gyp"
+  ],
+  "scripts": {
+    "install": "node-gyp-build",
+    "build:dev": "node-gyp rebuild --debug --gui=1",
+    "build:mac": "prebuildify --napi --arch x64+arm64",
+    "build:windows": "prebuildify --napi --platform win32 --arch x64+ia32",
+    "build:linux": "prebuildify --napi --platform linux --arch x64+ia32",
+    "test": "ava",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "node-gyp-build": "^4.6.0"
+  },
+  "devDependencies": {
+    "ava": "^5.3.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.2",
+    "node-gyp": "9.4.0",
+    "prebuildify": "^6.0.0"
+  },
+  "binary": {
+    "napi_versions": [
+      8
+    ]
+  }
+}
