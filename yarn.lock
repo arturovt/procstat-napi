@@ -1234,10 +1234,10 @@ node-abi@^3.3.0:
   dependencies:
     semver "^7.3.5"
 
-node-gyp-build-esm@5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/node-gyp-build-esm/-/node-gyp-build-esm-5.0.0.tgz#261da847d7559dc8a7c2aa150656425344574b58"
-  integrity sha512-RUy8lWidD+VFN7gpiTTN+P3Yyo+QwPnrCZKWIUGJTGCaB/z6unz5L0/Rn4+6SmGlMkDHkZXJxwwKxOjnifBItw==
+node-gyp-build-esm@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/node-gyp-build-esm/-/node-gyp-build-esm-5.0.1.tgz#db62a1e8ef086e67215af58bdf7a6a548cb82a75"
+  integrity sha512-GagklmZU3eLYZsuaUJWxqujtMkgi6ebT9TdNV5jH6SQB6qSDrlvTpuxCoT10yVMRjKy1J/lD1DZOQGWiECcMOg==
 
 node-gyp@9.4.0:
   version "9.4.0"
