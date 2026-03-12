@@ -7,16 +7,7 @@ typedef struct {
   unsigned long nonvoluntary;
 } ContextSwitches;
 
-static inline ContextSwitches read_context_switches(int pid) {
-#ifndef __linux__
-  // Apple: context switches not easily available without external lib
-  // closest is proc_pidinfo() from <libproc.h>
-  // Windows: no context switch API exposed in Win32 at per-process level
-  // would need ETW (Event Tracing for Windows) — overkill
-  // ❌ MSVC doesn't like this (ContextSwitches){0, 0}
-  return ContextSwitches{0, 0};
-#endif
-
+static inline ContextSwitches read_context_switches_linux(int pid) {
   // /proc/[pid]/status is a Linux kernel virtual file exposing process
   // metadata. 64 bytes is enough for "/proc/" + max 10-digit PID + "/status" +
   // null terminator.
@@ -48,6 +39,18 @@ static inline ContextSwitches read_context_switches(int pid) {
 
   fclose(file);
   return result;
+}
+
+static inline ContextSwitches read_context_switches(int pid) {
+#ifdef __linux__
+  return read_context_switches_linux(pid);
+#else
+  // Apple: context switches not easily available without external lib
+  // closest is proc_pidinfo() from <libproc.h>
+  // Windows: no context switch API exposed in Win32 at per-process level
+  // would need ETW (Event Tracing for Windows) — overkill
+  return ContextSwitches{0, 0};
+#endif
 }
 
 napi_value get_context_switches(napi_env env, napi_callback_info info) {
