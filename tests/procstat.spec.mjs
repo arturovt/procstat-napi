@@ -8,5 +8,6 @@ test('gets context switches', async (t) => {
   await new Promise((resolve) => setTimeout(resolve, 500));
   const result = getContextSwitches(child.pid);
   child.kill();
+  console.log('result = ', result);
   t.truthy(result.voluntary > 1);
 });

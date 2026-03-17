@@ -1,43 +1,16 @@
 #include <node_api.h>
-#include <stdio.h>
-#include <string.h>
+#include <sys/resource.h>
 
 typedef struct {
-  unsigned long voluntary;
-  unsigned long nonvoluntary;
+  long voluntary;
+  long nonvoluntary;
 } ContextSwitches;
 
 static inline ContextSwitches read_context_switches_linux(int pid) {
-  // /proc/[pid]/status is a Linux kernel virtual file exposing process
-  // metadata. 64 bytes is enough for "/proc/" + max 10-digit PID + "/status" +
-  // null terminator.
-  char path[64];
-  snprintf(path, sizeof(path), "/proc/%d/status", pid);
-
-  ContextSwitches result = {0, 0};
-
-  // 256 bytes is enough for any single line in /proc/[pid]/status —
-  // the longest lines are well under 100 characters.
-  char line[256];
-
-  FILE* file = fopen(path, "r");
-  // fopen fails if the process no longer exists — return zeros gracefully.
-  if (!file) return result;
-
-  while (fgets(line, sizeof(line), file)) {
-    // strncmp compares only the first N characters so we match the key prefix
-    // without caring about the value that follows on the same line.
-    // 24 = strlen("voluntary_ctxt_switches:")
-    if (strncmp(line, "voluntary_ctxt_switches:", 24) == 0) {
-      sscanf(line, "voluntary_ctxt_switches: %lu", &result.voluntary);
-    }
-    // 27 = strlen("nonvoluntary_ctxt_switches:")
-    else if (strncmp(line, "nonvoluntary_ctxt_switches:", 27) == 0) {
-      sscanf(line, "nonvoluntary_ctxt_switches: %lu", &result.nonvoluntary);
-    }
-  }
-
-  fclose(file);
+  struct rusage usage;
+  getrusage(RUSAGE_SELF, &usage);
+  ContextSwitches result = {.voluntary = usage.ru_nvcsw,
+                            .nonvoluntary = usage.ru_nivcsw};
   return result;
 }
 
