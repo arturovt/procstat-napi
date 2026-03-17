@@ -11,4 +11,4 @@ const binding = load(__dirname, () => ({
     require(/* @vite-ignore */ './prebuilds/win32-x64+ia32/procstat-napi.node'),
 }));
 
-module.exports = { xml2json: binding.xml2json };
+module.exports = { createMonitor: binding.createMonitor };

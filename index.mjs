@@ -45,6 +45,6 @@ if (typeof require === 'function') {
   }));
 }
 
-const getContextSwitches = binding.getContextSwitches;
+const createMonitor = binding.createMonitor;
 
-export { getContextSwitches };
+export { createMonitor };

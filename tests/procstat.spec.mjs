@@ -1,13 +1,17 @@
 import test from 'ava';
-import childProcess from 'node:child_process';
 
-import { getContextSwitches } from '../index.mjs';
+import { createMonitor } from '../index.mjs';
 
 test('gets context switches', async (t) => {
-  const child = childProcess.spawn('node', ['./tests/fixtures/event-loop.js']);
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  const result = getContextSwitches(child.pid);
-  child.kill();
-  console.log('result = ', result);
-  t.truthy(result.voluntary > 1);
+  const monitor = createMonitor({ intervalMs: 1000 });
+  const recorder = [];
+  monitor.start((stats) => {
+    recorder.push(stats);
+  });
+  const timeoutId = setInterval(() => {}, 1);
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  clearInterval(timeoutId);
+  monitor.stop();
+  t.truthy(recorder.length > 0);
+  t.truthy(recorder[0].voluntaryContextSwitches > 0);
 });

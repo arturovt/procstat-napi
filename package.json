@@ -43,6 +43,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "node-addon-api": "^8.6.0",
     "node-gyp-build-esm": "5.0.2"
   },
   "devDependencies": {
