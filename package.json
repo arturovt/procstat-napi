@@ -39,7 +39,7 @@
     "build:mac": "prebuildify --napi --arch x64+arm64",
     "build:windows": "prebuildify --napi --platform win32 --arch x64+ia32",
     "build:linux": "prebuildify --napi --platform linux --arch x64+ia32",
-    "test": "ava",
+    "test": "LD_PRELOAD=$(gcc -print-file-name=libasan.so) NODE_OPTIONS=\"--expose-gc\" ava",
     "prepare": "husky"
   },
   "dependencies": {

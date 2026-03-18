@@ -20,8 +20,11 @@ export interface Stats {
 }
 
 export interface Monitor {
-  start(callback: (stats: Stats) => void): void;
-  stop(): void;
+  on(event: 'stats', callback: (stats: Stats) => void): void;
+  on(event: 'leak', callback: (report: string) => void): void;
+
+  off(event: 'stats', callback: (stats: Stats) => void): void;
+  off(event: 'leak', callback: (report: string) => void): void;
 }
 
 export function createMonitor(options: MonitorOptions): Monitor;
