@@ -19,7 +19,7 @@ import { createMonitor } from 'procstat-napi';
 
 const monitor = createMonitor({ intervalMs: 1000 });
 
-monitor.start((stats) => {
+const onStats = (stats) => {
   console.log(stats);
   // {
   //   voluntaryContextSwitches: 84603,
@@ -32,26 +32,58 @@ monitor.start((stats) => {
   //   blockInputOps: 10,
   //   blockOutputOps: 5
   // }
-});
+};
 
-monitor.stop();
+monitor.on('stats', onStats);
+
+// later
+monitor.off('stats', onStats);
+```
+
+## ASan leak reporting
+
+When built with AddressSanitizer, the monitor can deliver leak reports directly to JavaScript instead of writing them to stderr.
+
+```js
+const monitor = createMonitor({ intervalMs: 1000 });
+
+monitor.on('leak', (report) => {
+  console.error('ASan leak detected:\n', report);
+});
+```
+
+The report string is the full ASan output. The callback fires on the Node.js event loop, so it is safe to call any JS from inside it.
+
+To build with ASan:
+```sh
+npm run build
+```
+
+To run with ASan:
+```sh
+LD_PRELOAD=$(gcc -print-file-name=libasan.so) NODE_OPTIONS="--expose-gc" node your_script.js
 ```
 
 ## API
 
-### `createMonitor(options?): Monitor`
+### `createMonitor(options): Monitor`
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `intervalMs` | `number` | `1000` | Polling interval in milliseconds |
+`options` is required.
 
-### `monitor.start(callback)`
+| Option | Type | Description |
+|---|---|---|
+| `intervalMs` | `number` | Polling interval in milliseconds |
 
-Starts the timer and calls `callback` with a `Stats` object on each tick.
+### `monitor.on(event, callback)`
 
-### `monitor.stop()`
+| Event | Callback signature | Description |
+|---|---|---|
+| `'stats'` | `(stats: Stats) => void` | Fires on each timer tick. Starts the timer on first call |
+| `'leak'` | `(report: string) => void` | Fires when ASan detects a leak. ASan build only |
 
-Stops the timer and releases the handle.
+### `monitor.off(event, callback)`
+
+Removes the specific `callback` for the given event. Stops the timer when the last `stats` listener is removed. Tears down the ASan async handle when the last `leak` listener is removed across all monitors.
 
 ## Metrics explained
 
@@ -67,4 +99,4 @@ Stops the timer and releases the handle.
 | `blockInputOps` | Block input operations |
 | `blockOutputOps` | Block output operations |
 
-A `involuntaryContextSwitches / voluntaryContextSwitches` ratio above ~5% is worth investigating.
+An `involuntaryContextSwitches / voluntaryContextSwitches` ratio above ~5% is worth investigating.
