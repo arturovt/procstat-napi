@@ -77,6 +77,4 @@ if (typeof require === 'function') {
   }));
 }
 
-const createMonitor = binding.createMonitor;
-
-export { createMonitor };
+export const createMonitor = binding.createMonitor;

@@ -1,7 +1,4 @@
 {
-  'variables': {
-    'openssl_fips': '0'
-  },
   'targets': [
     {
       'target_name': 'node_procstat',
@@ -20,7 +17,6 @@
       'conditions': [
         ['OS == "mac"', {
           'xcode_settings': {
-            'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
             'OTHER_CFLAGS': [
               '-fsanitize=address',
               '-fno-omit-frame-pointer'

@@ -14,14 +14,28 @@
   "main": "./index.js",
   "exports": {
     ".": {
-      "import": "./index.mjs",
-      "require": "./index.js",
-      "types": "./index.d.ts"
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./index.mjs"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      }
+    },
+    "./package.json": {
+      "default": "./package.json"
+    },
+    "./index.js": {
+      "default": "./index.js"
+    },
+    "./index.mjs": {
+      "default": "./index.mjs"
     }
   },
   "typings": "./index.d.ts",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=22.16.0"
   },
   "files": [
     "index.js",
@@ -39,7 +53,7 @@
     "build:mac": "prebuildify --napi --arch x64+arm64",
     "build:windows": "prebuildify --napi --platform win32 --arch x64+ia32",
     "build:linux": "prebuildify --napi --platform linux --arch x64+ia32",
-    "test": "LD_PRELOAD=$(gcc -print-file-name=libasan.so) NODE_OPTIONS=\"--expose-gc\" ava",
+    "test": "sh -c 'if [ \"$(uname)\" = \"Darwin\" ]; then DYLD_INSERT_LIBRARIES=$(clang -print-file-name=libclang_rt.asan_osx_dynamic.dylib) NODE_OPTIONS=--expose-gc ava; else LD_PRELOAD=$(gcc -print-file-name=libasan.so) NODE_OPTIONS=--expose-gc ava; fi'",
     "prepare": "husky"
   },
   "dependencies": {

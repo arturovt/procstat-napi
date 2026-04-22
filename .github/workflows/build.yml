@@ -27,7 +27,11 @@ jobs:
       CXX: g++
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
 
       # Linux only: install a specific GCC version via egor-tensin/setup-gcc
       - name: Setup GCC
@@ -43,9 +47,10 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         if: ${{ matrix.platform.runner == 'windows-latest' }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: '22.16.0'
+          cache: pnpm
 
       # Python 3.11 is the last version with distutils built-in.
       # node-gyp depends on distutils; 3.12+ removed it and requires setuptools as a shim.
@@ -56,13 +61,13 @@ jobs:
       # --ignore-scripts prevents "install": "node-gyp-build" from running during
       # yarn install — at this point there are no prebuilds yet, so it would fail.
       # The actual build happens in the next step via the platform-specific script.
-      - run: yarn --pure-lockfile --ignore-scripts
-      - run: yarn ${{ matrix.platform.command }}
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm ${{ matrix.platform.command }}
 
       # Upload only the platform-specific prebuilds — shared files are assembled
       # in the publish job to avoid duplicating them across 3 artifacts
       - name: Upload prebuilds
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ github.event_name == 'workflow_dispatch' }}
         with:
           name: prebuilds-${{ matrix.platform.runner }}
@@ -73,30 +78,22 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
+      - uses: actions/checkout@v5
 
       # Download all 3 platform prebuilds and merge them into a single prebuilds/ folder
       - name: Download all prebuilds
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: prebuilds-*
           merge-multiple: true
           path: prebuilds/
 
+      - name: Run npm pack
+        run: npm pack --ignore-scripts
+
       # Single final artifact containing shared files + all platform .node binaries
       - name: Upload final artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: build
-          path: |
-            package.json
-            index.js
-            index.mjs
-            index.d.ts
-            README.md
-            LICENSE
-            prebuilds/
-            src
-            binding.gyp
+          name: pack
+          path: procstat-napi*.tgz
