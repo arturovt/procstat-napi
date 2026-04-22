@@ -14,14 +14,28 @@
   "main": "./index.js",
   "exports": {
     ".": {
-      "import": "./index.mjs",
-      "require": "./index.js",
-      "types": "./index.d.ts"
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./index.mjs"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      }
+    },
+    "./package.json": {
+      "default": "./package.json"
+    },
+    "./index.js": {
+      "default": "./index.js"
+    },
+    "./index.mjs": {
+      "default": "./index.mjs"
     }
   },
   "typings": "./index.d.ts",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=22.16.0"
   },
   "files": [
     "index.js",
