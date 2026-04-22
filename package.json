@@ -53,7 +53,7 @@
     "build:mac": "prebuildify --napi --arch x64+arm64",
     "build:windows": "prebuildify --napi --platform win32 --arch x64+ia32",
     "build:linux": "prebuildify --napi --platform linux --arch x64+ia32",
-    "test": "sh -c 'if [ \"$(uname)\" = \"Darwin\" ]; then DYLD_INSERT_LIBRARIES=$(clang -print-file-name=libclang_rt.asan_osx_dynamic.dylib) NODE_OPTIONS=--expose-gc ava; else LD_PRELOAD=$(gcc -print-file-name=libasan.so) NODE_OPTIONS=--expose-gc ava; fi'",
+    "test": "LD_PRELOAD=$(gcc -print-file-name=libasan.so) NODE_OPTIONS=\"--expose-gc\" ava",
     "prepare": "husky"
   },
   "dependencies": {
